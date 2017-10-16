@@ -4,12 +4,14 @@
 \alias{scidb.exec}
 \title{scidb base functions}
 \usage{
-scidb.exec(afl, fetch_data = TRUE)
+scidb.exec(afl, fetch_data = TRUE, ssh_server = NULL)
 }
 \arguments{
 \item{afl}{A valid AFL scidb query}
 
 \item{fetch_data}{Logical. Inform if data must be retrieved from \code{afl} query (Default \code{TRUE}).}
+
+\item{ssh_server}{String informing a ssh conection, i.e. 'user@server', to run iquery.}
 }
 \value{
 Tibble with AFL result

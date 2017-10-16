@@ -20,9 +20,13 @@ utils::globalVariables(c(".data"))
 #' @param fetch_data   Logical. Inform if data must be retrieved from \code{afl} query (Default \code{TRUE}).
 #' @return Tibble with AFL result
 #' @export
-scidb.exec <- function(afl, fetch_data = TRUE){
+scidb.exec <- function(afl, fetch_data = TRUE, ssh_server = NULL){
     if (fetch_data){
-        result <- system(sprintf("iquery -aq \"%s;\"", afl), intern = TRUE)
+        if (!is.null(ssh_cmd_line))
+            result <- system(sprintf("ssh s <<'ENDSSH'\n%s\nENDSSH"), 
+                             sprintf("iquery -aq \"%s;\"", afl), intern = TRUE)
+        else
+            result <- system(sprintf("iquery -aq \"%s;\"", afl), intern = TRUE)
         if (length(result) > 1){
             result <- result[1:(length(result)-1)]
             result <- gsub("[{}]", "", result)
@@ -31,7 +35,11 @@ scidb.exec <- function(afl, fetch_data = TRUE){
                 tibble::as.tibble()
         }
     } else {
-        result <- system(sprintf("iquery -aqn \"%s;\"", afl), intern = TRUE)
+        if (!is.null(ssh_cmd_line))
+            result <- system(sprintf("ssh s <<'ENDSSH'\n%s\nENDSSH"), 
+                             sprintf("iquery -aqn \"%s;\"", afl), intern = TRUE)
+        else
+            result <- system(sprintf("iquery -aqn \"%s;\"", afl), intern = TRUE)
     }
     return(result)
 }

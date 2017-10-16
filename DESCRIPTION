@@ -1,0 +1,18 @@
+Package: scidbquery
+Type: Package
+Title: Massive Satellite Image Time Series
+Version: 0.1.1
+Author: Rolf Simoes
+Maintainer: Rolf Simoes <rolf.simoes@inpe.br>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Depends:
+    magrittr
+Imports:
+    dplyr,
+    purrr,
+    tibble
+RoxygenNote: 6.0.1

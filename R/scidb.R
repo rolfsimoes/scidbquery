@@ -28,7 +28,7 @@ utils::globalVariables(c(".data"))
 scidb.set_iquery_path <- function(path){
     if (substr(path, nchar(length(path)), nchar(length(path))) != "/")
         path <- paste0(path, "/")
-    scidb.path <- path
+    scidb.path <<- path
     invisible(NULL)
 }
 

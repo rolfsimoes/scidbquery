@@ -11,10 +11,16 @@ scidb.valid_types <-
       "string")
 
 #' @title scidb global variable
+#' @name scidb.env
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Package environment
+scidb.env <- new.env()
+
+#' @title scidb global variable
 #' @name scidb.path
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Path to iquery binary
-scidb.path <- ""
+scidb.env$scidb.path <- ""
 
 utils::globalVariables(c(".data"))
 
@@ -28,7 +34,7 @@ utils::globalVariables(c(".data"))
 scidb.set_iquery_path <- function(path){
     if (substr(path, nchar(length(path)), nchar(length(path))) != "/")
         path <- paste0(path, "/")
-    scidb.path <<- path
+    scidb.env$scidb.path <- path
     invisible(NULL)
 }
 
@@ -39,7 +45,7 @@ scidb.set_iquery_path <- function(path){
 #' @return Path to iquery binary
 #' @export
 scidb.iquery_path <- function(){
-    return(scidb.path)
+    return(scidb.env$scidb.path)
 }
 
 #' @title scidb base functions
@@ -54,7 +60,7 @@ scidb.exec <- function(afl, fetch_data = TRUE){
     
     if (fetch_data){
         result <- system(sprintf("%siquery -aq \"%s;\"", 
-                                 scidb.path,
+                                 scidb.iquery_path(),
                                  afl), 
                          intern = TRUE)
         if (length(result) > 1){
@@ -66,7 +72,7 @@ scidb.exec <- function(afl, fetch_data = TRUE){
         }
     } else {
         result <- system(sprintf("%siquery -aqn \"%s;\"", 
-                                 scidb.path,
+                                 scidb.iquery_path(),
                                  afl),
                          intern = TRUE)
     }

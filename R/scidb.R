@@ -17,13 +17,16 @@ utils::globalVariables(c(".data"))
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Execute AFL instruction
 #' @param afl          A valid AFL scidb query
+#' @param path         Path of iquery scidb client (Default \code{NULL})
 #' @param fetch_data   Logical. Inform if data must be retrieved from \code{afl} query (Default \code{TRUE}).
 #' @return Tibble with AFL result
 #' @export
-scidb.exec <- function(afl, fetch_data = TRUE){
+scidb.exec <- function(afl, path = NULL, fetch_data = TRUE){
+    if (!is.null(path))
+        path <- paste0(path, "/")
     
     if (fetch_data){
-        result <- system(sprintf("iquery -aq \"%s;\"", afl), 
+        result <- system(sprintf("%siquery -aq \"%s;\"", afl), 
                          intern = TRUE)
         if (length(result) > 1){
             result <- result[1:(length(result)-1)]
@@ -33,7 +36,7 @@ scidb.exec <- function(afl, fetch_data = TRUE){
                 tibble::as.tibble()
         }
     } else {
-        result <- system(sprintf("iquery -aqn \"%s;\"", afl),
+        result <- system(sprintf("%siquery -aqn \"%s;\"", afl),
                          intern = TRUE)
     }
     return(result)

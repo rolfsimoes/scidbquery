@@ -10,23 +10,52 @@ scidb.valid_types <-
       "double", 
       "string")
 
+#' @title scidb global variable
+#' @name scidb.path
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Path to iquery binary
+scidb.path <- ""
+
 utils::globalVariables(c(".data"))
+
+#' @title scidb base functions
+#' @name scidb.set_iquery_path
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Get actual path of iquery binary
+#' @param path         Path to iquery binary
+#' @return String of path
+#' @export
+scidb.set_iquery_path <- function(path){
+    if (substr(path, nchar(length(path)), nchar(length(path))) != "/")
+        path <- paste0(path, "/")
+    scidb.path <- path
+    invisible(NULL)
+}
+
+#' @title scidb base functions
+#' @name scidb.iquery_path
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Get actual path of iquery binary
+#' @return Path to iquery binary
+#' @export
+scidb.iquery_path <- function(){
+    return(scidb.path)
+}
 
 #' @title scidb base functions
 #' @name scidb.exec
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Execute AFL instruction
 #' @param afl          A valid AFL scidb query
-#' @param path         Path of iquery scidb client (Default \code{NULL})
 #' @param fetch_data   Logical. Inform if data must be retrieved from \code{afl} query (Default \code{TRUE}).
 #' @return Tibble with AFL result
 #' @export
-scidb.exec <- function(afl, path = NULL, fetch_data = TRUE){
-    if (!is.null(path))
-        path <- paste0(path, "/")
+scidb.exec <- function(afl, fetch_data = TRUE){
     
     if (fetch_data){
-        result <- system(sprintf("%siquery -aq \"%s;\"", afl), 
+        result <- system(sprintf("%siquery -aq \"%s;\"", 
+                                 scidb.path,
+                                 afl), 
                          intern = TRUE)
         if (length(result) > 1){
             result <- result[1:(length(result)-1)]

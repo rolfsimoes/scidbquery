@@ -65,7 +65,8 @@ scidb.exec <- function(afl, fetch_data = TRUE){
                          intern = TRUE)
         if (length(result) > 1){
             result <- result[1:(length(result)-1)]
-            result <- gsub("[{}]", "", result)
+            result <- gsub("[{]", "", result)
+            result <- gsub("[}]", ",", result)
             result <- 
                 utils::read.table(text = result, sep = ",", header = TRUE) %>% 
                 tibble::as.tibble()

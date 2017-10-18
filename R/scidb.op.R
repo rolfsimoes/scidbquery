@@ -74,8 +74,8 @@ scidb.stream <- function(a, file, params = NULL, file_output_fields){
             sprintf("stream(%s, 'Rscript %s', 'format=df', 'types=%s', 'names=%s')", 
                     a, 
                     paste(file, paste(names(params), params, sep="=", collapse=" ")), 
-                    paste(file_output_fields, collapse = ", "),
-                    paste(names(file_output_fields), collapse = ", "))
+                    paste(file_output_fields, collapse = ","),
+                    paste(names(file_output_fields), collapse = ","))
         }, USE.NAMES = FALSE)
     
     return(result)
@@ -100,7 +100,7 @@ scidb.apply <- function(a, ...){
     
     result <- 
         sapply(a, function(a){
-            sprintf("apply(%s, %s)", a, paste(names(dots), dots, sep="=", collapse=", "))
+            sprintf("apply(%s, %s)", a, paste(names(dots), dots, sep=", ", collapse=", "))
         }, USE.NAMES = FALSE)
     
     return(result)

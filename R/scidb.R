@@ -22,7 +22,7 @@ scidb.env <- new.env()
 #' @description  Path to iquery binary
 scidb.env$scidb.path <- ""
 
-utils::globalVariables(c(".data"))
+utils::globalVariables(c(".data", "name"))
 
 #' @title scidb base functions
 #' @name scidb.set_iquery_path
@@ -57,12 +57,11 @@ scidb.iquery_path <- function(){
 #' @return Tibble with AFL result
 #' @export
 scidb.exec <- function(afl, fetch_data = TRUE){
-    
+    conn <- pipe(sprintf("%siquery -aq \"%s;\"", 
+                         scidb.iquery_path(),
+                         afl), open = "r")
+    result <- readLines(conn)
     if (fetch_data){
-        result <- system(sprintf("%siquery -aq \"%s;\"", 
-                                 scidb.iquery_path(),
-                                 afl), 
-                         intern = TRUE)
         if (length(result) > 1){
             result <- result[1:(length(result)-1)]
             result <- gsub("[{]", "", result)
@@ -75,12 +74,8 @@ scidb.exec <- function(afl, fetch_data = TRUE){
                                   header = TRUE) %>% 
                 tibble::as.tibble()
         }
-    } else {
-        result <- system(sprintf("%siquery -aqn \"%s;\"", 
-                                 scidb.iquery_path(),
-                                 afl),
-                         intern = TRUE)
     }
+    close(conn)
     return(result)
 }
 

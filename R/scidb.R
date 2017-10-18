@@ -71,6 +71,7 @@ scidb.exec <- function(afl, fetch_data = TRUE){
                 utils::read.table(text = result, 
                                   sep = ",", 
                                   strip.white = TRUE,
+                                  stringsAsFactors = FALSE,
                                   header = TRUE) %>% 
                 tibble::as.tibble()
         }

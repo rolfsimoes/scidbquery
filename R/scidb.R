@@ -60,22 +60,24 @@ scidb.exec <- function(afl, fetch_data = TRUE){
     conn <- pipe(sprintf("%siquery -aq \"%s;\"", 
                          scidb.iquery_path(),
                          afl), open = "r")
-    result <- readLines(conn)
-    if (fetch_data){
-        if (length(result) > 1){
-            result <- result[1:(length(result)-1)]
-            result <- gsub("[{]", "", result)
-            result <- gsub("[}]", ",", result)
-            result <- 
-                utils::read.table(text = result, 
-                                  sep = ",", 
-                                  strip.white = TRUE,
-                                  stringsAsFactors = FALSE,
-                                  header = TRUE) %>% 
-                tibble::as.tibble()
-        }
-    }
+    lines <- readLines(conn)
     close(conn)
+    
+    result <- 
+        if (fetch_data){
+            lines <- gsub("(\\{(.*)\\} )(.*)", "\\2,\\3", lines)
+            lines <- lines[1:(length(lines)-1)]
+            lines_split <- strsplit(lines, ",")
+            header <- lines_split[[1]]
+            data_mask <- lapply(header, function(x) header == x)
+            names(data_mask) <- header
+            data <- unlist(lines_split[2:length(lines_split)])
+            lapply(data_mask, function(x) data[x]) %>% 
+                tibble::as_tibble()
+        } else {
+            lines
+        }
+    
     return(result)
 }
 

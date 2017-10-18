@@ -151,7 +151,7 @@ scidb.make_schema <- function(a_name, sch_attrs = list(attr1 = "int32"), sch_dim
     if (any(sapply(sch_dim, length) != 4))
         stop("scidb.make_schema - all schema dimensions must have 4 elements")
     
-    attrs <- paste(names(sch_attrs), sch_attrs, sep = "=", collapse=", ")
+    attrs <- paste(names(sch_attrs), sch_attrs, sep = ":", collapse=", ")
     dimensions <- paste(names(sch_dim), 
                         sapply(sch_dim, function(d) sprintf("%s:%s,%s,%s", d[1], d[2], d[3], d[4])), 
                         sep = "=", collapse = ", ")

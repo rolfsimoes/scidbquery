@@ -106,38 +106,12 @@ scidb.types_convert <- function(x, expected_names = NULL, expected_types = NULL,
 #' @export
 scidb.map_stream <- function(fun, err_file = NULL){
 
+    # open pipes
     cerr <- NULL
-    cout <- NULL
-    cin  <- NULL
-
-    .open_pipes <- function(){
-        envir <- parent.frame()
-
-        envir$cerr <- NULL
-        if (!is.null(err_file))
-            envir$cerr <- file(err_file, "at")
-        envir$cin  <- file("stdin", "rb")
-        envir$cout <- pipe("cat", "wb")
-    }
-
-    .close_pipes <- function(terminate = FALSE){
-        envir <- parent.frame()
-
-        if (!is.null(envir$cerr))
-            close(envir$cerr)
-        close(envir$cin)
-        close(envir$cout)
-
-        if (terminate)
-            quit(save = "no")
-    }
-
-    .write_output <- function(){
-        envir <- parent.frame()
-
-        writeBin(serialize(c(envir$output), NULL, xdr=FALSE), envir$cout)
-        flush(envir$cout)
-    }
+    if (!is.null(err_file))
+        cerr <- file(err_file, "at")
+    cin  <- file("stdin", "rb")
+    cout <- pipe("cat", "wb")
 
     tryCatch({
         while(TRUE) {
@@ -145,22 +119,36 @@ scidb.map_stream <- function(fun, err_file = NULL){
             input_data <- unserialize(cin)
 
             if(length(input_data) == 0) {
-                .write_output()
-                .close_pipes(terminate = TRUE)
+                # write pipes
+                writeBin(serialize(c(output), NULL, xdr=FALSE), cout)
+                flush(cout)
+                
+                # close pipes
+                if (!is.null(cerr))
+                    close(cerr)
+                close(cin)
+                close(cout)
+                break
             }
 
             output <- fun(input_data)
 
-            .write_output()
+            # write pipes
+            writeBin(serialize(c(output), NULL, xdr=FALSE), cout)
+            flush(cout)
         }
     }, error = function(err){
         if (!is.null(cerr))
             writeLines(paste(date(), err$message, sep = ": "), cerr)
         else
             message(paste(date(), err$message, sep = ": "))
-        .close_pipes(terminate = TRUE)
     }, finally = {
-        .close_pipes()
+        # close pipes
+        if (!is.null(cerr))
+            close(cerr)
+        close(cin)
+        close(cout)
+        break
     })
 
     invisible(NULL)

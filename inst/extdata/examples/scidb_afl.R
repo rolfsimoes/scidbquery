@@ -9,8 +9,9 @@ scidb.between("mod13q1_512",
               time_id = c(    0,   512), 
               max_len = 1800) %>% 
     scidb.project(c("ndvi", "evi", "nir", "mir")) %>% 
-    scidb.apply(colid = "double(col_id)", 
-                rowid = "double(row_id)") %>%
+    scidb.apply(colid  = "double(col_id)", 
+                rowid  = "double(row_id)",
+                timeid = "double(time_id)") %>%
     scidb.cast(
         scidb.make_schema("", 
                           sch_attrs = 

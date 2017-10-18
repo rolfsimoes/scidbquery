@@ -68,7 +68,10 @@ scidb.exec <- function(afl, fetch_data = TRUE){
             result <- gsub("[{]", "", result)
             result <- gsub("[}]", ",", result)
             result <- 
-                utils::read.table(text = result, sep = ",", header = TRUE) %>% 
+                utils::read.table(text = result, 
+                                  sep = ",", 
+                                  strip.white = TRUE,
+                                  header = TRUE) %>% 
                 tibble::as.tibble()
         }
     } else {
@@ -105,7 +108,7 @@ scidb.array <- function(a_name){
     result <- scidb.arrays()
     result <- 
         result %>% 
-        dplyr::filter("name" == a_name)
+        dplyr::filter(name == a_name)
     
     if (NROW(result) != 1)
         stop(sprintf("get_array - array '%s' does not exist", a_name))

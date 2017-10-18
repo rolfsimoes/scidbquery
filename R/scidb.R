@@ -68,7 +68,10 @@ scidb.exec <- function(afl, fetch_data = TRUE){
             result <- gsub("[{]", "", result)
             result <- gsub("[}]", ",", result)
             result <- 
-                utils::read.table(text = result, sep = ",", header = TRUE) %>% 
+                utils::read.table(text = result, 
+                                  sep = ",", 
+                                  strip.white = TRUE,
+                                  header = TRUE) %>% 
                 tibble::as.tibble()
         }
     } else {

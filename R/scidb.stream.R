@@ -148,7 +148,6 @@ scidb.map_stream <- function(fun, err_file = NULL){
             close(cerr)
         close(cin)
         close(cout)
-        break
     })
 
     invisible(NULL)

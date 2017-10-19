@@ -1,15 +1,3 @@
-#' @import magrittr
-#' 
-
-#' @title scidb global variable
-#' @name scidb.valid_types
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Compatible scidb to R types
-scidb.valid_types <- 
-    c("int32", 
-      "double", 
-      "string")
-
 #' @title scidb global variable
 #' @name scidb.env
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -20,9 +8,7 @@ scidb.env <- new.env()
 #' @name scidb.path
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Path to iquery binary
-scidb.env$scidb.path <- ""
-
-utils::globalVariables(c(".data", "name"))
+scidb.env$scidb.path <- "iquery"
 
 #' @title scidb base functions
 #' @name scidb.set_iquery_path
@@ -32,8 +18,6 @@ utils::globalVariables(c(".data", "name"))
 #' @return String of path
 #' @export
 scidb.set_iquery_path <- function(path){
-    if (substr(path, nchar(length(path)), nchar(length(path))) != "/")
-        path <- paste0(path, "/")
     scidb.env$scidb.path <- path
     invisible(NULL)
 }
@@ -57,7 +41,10 @@ scidb.iquery_path <- function(){
 #' @return Tibble with AFL result
 #' @export
 scidb.exec <- function(afl, fetch_data = TRUE){
-    conn <- pipe(sprintf("%siquery -aq \"%s;\"", 
+    
+    # create a pipe calling iquery and passing to it an
+    # AFL command
+    conn <- pipe(sprintf("%s -aq \"%s;\"", 
                          scidb.iquery_path(),
                          afl), open = "r")
     lines <- readLines(conn)
@@ -65,98 +52,36 @@ scidb.exec <- function(afl, fetch_data = TRUE){
     
     result <- 
         if (fetch_data){
+            # process iquery result in a fast way
+            # remove brackets "{...} ..." 
             lines <- gsub("(\\{(.*)\\} )(.*)", "\\2,\\3", lines)
+            
+            # remove last line
             lines <- lines[1:(length(lines)-1)]
+            
+            # split string by all commas
             lines_split <- strsplit(lines, ",")
+            
+            # first vector is header
             header <- lines_split[[1]]
+            
+            # data_mask to compose final result
+            # data_mask is an array of Logical values used to mask
+            # the value of one field.
             data_mask <- lapply(header, function(x) header == x)
             names(data_mask) <- header
+            
+            # transform all data into unique array
+            # and apply data_mask to select the right values
+            # to the right field.
             data <- unlist(lines_split[2:length(lines_split)])
+            
+            # transform as a tibble
             lapply(data_mask, function(x) data[x]) %>% 
                 tibble::as_tibble()
         } else {
             lines
         }
-    
-    return(result)
-}
-
-#' @title scidb base functions
-#' @name scidb.arrays
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Get all scidb arrays
-#' @return Tibble with AFL result
-#' @export
-scidb.arrays <- function(){
-    result <- 
-        sprintf("list('arrays');") %>% 
-        scidb.exec() %>% 
-        dplyr::select("name", "schema")
-    return(result)
-}
-
-#' @title scidb base functions
-#' @name scidb.array
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Get a specific scidb array
-#' @param a_name       A valid array name. If \code{NULL} all arrays are returned (Default \code{NULL})
-#' @return AFL string command
-#' @export
-scidb.array <- function(a_name){
-    result <- scidb.arrays()
-    result <- 
-        result %>% 
-        dplyr::filter(name == a_name)
-    
-    if (NROW(result) != 1)
-        stop(sprintf("get_array - array '%s' does not exist", a_name))
-    
-    return(result)
-}
-
-#' @title scidb base functions
-#' @name scidb.array_schema
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Get a specific scidb array schema
-#' @param a_name       A valid array name. If \code{NULL} all arrays are returned (Default \code{NULL}).
-#' @param R_types      Logical. Convert scidb types to compatible R types (Default \code{FALSE}).
-#' @return AFL string command
-#' @export
-scidb.array_schema <- function(a_name, R_types = FALSE){
-    result <- scidb.array(a_name)$schema
-    
-    if (R_types)
-        result <- .scidb_to_R_types(result)
-    
-    return(result)
-}
-
-#' @title scidb base functions
-#' @name scidb.make_schema
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Generate a new schema string
-#' @param a_name       A valid array name. If \code{NULL} all arrays are returned (Default \code{NULL}).
-#' @param sch_attrs    A list of pairs \code{attr_name="type"}, where \code{"type"} is any scidb type.
-#'                     R compatible types: \code{"int32"}, \code{"double"}, and \code{"string"}.
-#' @param sch_dim      A list of pairs \code{dim_name=c(from, to, chunck_size, chunk_overlap)}, where
-#'                     \code{from}, \code{to}, \code{chunk_size}, and \code{chunk_overlap} are numbers.
-#' @return A schema string
-#' @export
-scidb.make_schema <- function(a_name, sch_attrs = list(attr1 = "int32"), sch_dim = list(dim1 = c(0, 10, 11, 0))){
-    
-    if (!is.null(sch_attrs) && (is.null(names(sch_attrs)) || any(sapply(names(sch_attrs), nchar) == 0)))
-        stop("scidb.make_schema - all schema attributes must be named")
-    if (!is.null(sch_dim) && (is.null(names(sch_dim)) || any(sapply(names(sch_dim), nchar) == 0)))
-        stop("scidb.make_schema - all schema dimensions must be named")
-    if (any(sapply(sch_dim, length) != 4))
-        stop("scidb.make_schema - all schema dimensions must have 4 elements")
-    
-    attrs <- paste(names(sch_attrs), sch_attrs, sep = ":", collapse=", ")
-    dimensions <- paste(names(sch_dim), 
-                        sapply(sch_dim, function(d) sprintf("%s:%s,%s,%s", d[1], d[2], d[3], d[4])), 
-                        sep = "=", collapse = ", ")
-    
-    result <- sprintf("%s<%s>[%s]", a_name, attrs, dimensions)
     
     return(result)
 }

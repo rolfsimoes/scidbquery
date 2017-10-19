@@ -93,12 +93,12 @@
 }
 
 #' @title scidb utilities functions
-#' @name .Rscript_encode_args
+#' @name .script_encode_args
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Encode Rscript arguments to be passed to R scripts
 #' @param args          A string vector of argument values.
 #' @return Argument vector
-.Rscript_encode_args <- function(args){
+.script_encode_args <- function(args){
     args <- sapply(args, function(p){
         p <- gsub(" ", "`spc`", p)
         p <- gsub(" ", "`tab`", p)
@@ -110,12 +110,12 @@
 }
 
 #' @title scidb utilities functions
-#' @name .Rscript_decode_args
+#' @name .script_decode_args
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Encode Rscript arguments to be passed to R scripts
 #' @param args          A string vector of argument values.
 #' @return A named list with argument values.
-.Rscript_decode_args <- function(args){
+.script_decode_args <- function(args){
     args <- sapply(args, function(arg){
         arg <- gsub("`spc`", " ", arg)
         arg <- gsub("`tab`", "\t", arg)
@@ -133,4 +133,81 @@
     })
     names(args_values) <- args_names
     return(args_values)
+}
+
+#' @title scidb utilities functions
+#' @name .stamp_class
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Encode Rscript arguments to be passed to R scripts
+#' @param a             A valid array name or derived AFL command.
+#' @param class_name    The desired class to append in \code{a}.
+#' @return Appends a class into the object passed as argument and returns the same argument
+.stamp_class <- function(a, class_name){
+    if (!(class_name %in% class(a)))
+        class(a) <- c(class_name, class(a)) 
+    invisible(a)
+}
+
+#' @title scidb utilities functions
+#' @name .is_class
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Encode Rscript arguments to be passed to R scripts
+#' @param a             A valid array name or derived AFL command.
+#' @param class_name    The desired class to append in \code{a}.
+#' @return Tests if an object is of some class.
+.is_class <- function(a, class_name){
+    result <- (class_name %in% class(a))
+    return(result)
+}
+
+#' @title scidb utilities functions
+#' @name .bind_attrs_dim
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Ask scidb server and bind dimensions and attributes into array object.
+#' @param a             A valid array name or derived AFL command.
+#' @return The same object \code{a}
+.bind_attrs_dim <- function(a){
+    if (.is_class(a, .scidb.class))
+        invisible(NULL)
+        
+    if (length(a) != 1)
+        stop("You can inform only one array name.")
+    
+    schema_str <- schema.array(a)
+    attr(a, .scidb.attrs) <- schema.attrs(schema_str)
+    attr(a, .scidb.dim) <- schema.dim(schema_str)
+    
+    invisible(a)
+}
+
+#' @title scidb utilities functions
+#' @name .check_attrs
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Ask scidb server and bind dimensions and attributes into array object.
+#' @param a             A valid array name or derived AFL command.
+#' @param attr_names    Array of attributes to test
+#' @param update        If all \code{attr_names} is in \code{a} object, update new values?
+#' @param err_desc      A error message if check does not pass. If \code{NULL}, no 
+#'                      error will be raised.
+#' @return The same object \code{a}
+.check_attrs <- function(a, attr_names, update = TRUE, err_desc = NULL){
+
+    if (!all(attr_names %in% attr(a, .scidb.attrs)))
+        stop(err_desc)
+    
+    attr(a, .scidb.attrs) <- attr_names
+    invisible(a)
+}
+
+#' @title scidb utilities functions
+#' @name .copy_attrs
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Copy attributes from \code{from} object to \code{to} object
+#' @param to            A valid array name or derived AFL command.
+#' @param from          A valid array name or derived AFL command.
+#' @return The same object \code{to}
+.copy_attrs <- function(to, from){
+
+    attr(to, .scidb.attrs) <- attr(from, .scidb.attrs)
+    invisible(to)
 }

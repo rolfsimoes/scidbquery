@@ -131,7 +131,9 @@ scidb.between("mod13q1_512",
                               list(col_id    = c(0, 172799, 40, 0), 
                                    row_id    = c(0,  86399, 40, 0), 
                                    period_id = c(0,    "*", 40, 0)))) %>% 
-    scidb.store("TMP_MT_NO_NO_SVM_KN_RAD_FM_LIN")
+    scidb.store("TMP_MT_NO_NO_SVM_KN_RAD_FM_LIN") %>% 
+    return()
+
 #' 
 #' store(
 #'     redimension(

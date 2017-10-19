@@ -18,7 +18,7 @@ scidb.Rscript_params <- function(required_params = NULL, err_file = NULL){
         cerr <- file(err_file, "at")
 
     tryCatch({
-        result <- .Rscript_decode_args(commandArgs(TRUE))
+        result <- .script_decode_args(commandArgs(TRUE))
         
         if (!is.null(required_params) && !all((names(required_params) %in% names(result))))
             stop("scidb.Rscript_params - Not all required params are present.")

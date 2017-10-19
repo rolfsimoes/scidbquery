@@ -27,15 +27,6 @@ scidb.between("mod13q1_512",
                                    row_id  = c(0,  86399,  40, 0), 
                                    time_id = c(0,    512, 512, 0)))) %>% 
     scidb.stream("/net/esensing-001/disks/d9/scidb15_12/scripts/test_twdtw/scidbquery_stream.R", 
-                 params = 
-                     list(t_start     = 16,
-                          t_interval  = 23,
-                          model_path  = "/net/esensing-001/disks/d9/scidb15_12/scripts/test_twdtw/model_svm_kr_radial_fm_linear_embrapa.RData",
-                          bands       = c("ndvi", "evi", "nir", "mir"),
-                          miss_values = c(-3000, -3000, -1000, -1000),
-                          scale       = 0.0001,
-                          displace    = 3,
-                          cores       = 8),
                  file_output_fields = 
                      c(x           = "double", 
                        y           = "double", 
